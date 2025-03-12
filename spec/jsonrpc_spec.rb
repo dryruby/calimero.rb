@@ -24,7 +24,7 @@ describe JsonRpcClient do
       'jsonrpc' => '2.0',
       'id' => client.send(:get_random_request_id),
     }
-    mock_http_response(200, response_body)
+    mock_http_response(HTTPStatusCodes::HTTPOK, response_body)
 
     result = client.execute(params, config)
 
@@ -39,7 +39,7 @@ describe JsonRpcClient do
       'id' => request_id,
       'result' => { 'output' => 'success' }
     }
-    mock_http_response(200, response_body);
+    mock_http_response(HTTPStatusCodes::HTTPOK, response_body);
 
     result = client.execute(params, config)
 
@@ -57,7 +57,7 @@ describe JsonRpcClient do
         'output' => 'success'
       }
     }
-    mock_http_response(200, response_body);
+    mock_http_response(HTTPStatusCodes::HTTPOK, response_body);
 
     # Stub `get_random_request_id` to return the original request_id for the request
     allow(client).to receive(:get_random_request_id).and_return(request_id)
@@ -76,7 +76,7 @@ describe JsonRpcClient do
         'type' => 'TestError'
       }
     }
-    mock_http_response(200, response_body);
+    mock_http_response(HTTPStatusCodes::HTTPOK, response_body);
 
     result = client.execute(params, config)
 
@@ -92,17 +92,16 @@ describe JsonRpcClient do
         'data' => 'some msg'
       }
     }
-    bad_request_code = 400
-    mock_http_response(bad_request_code, response_body);
+    mock_http_response(HTTPStatusCodes::HTTPBadRequest, response_body);
 
     result = client.execute(params, config)
-    expect(result.error[:code]).to eq(bad_request_code)
+    expect(result.error[:code]).to eq(HTTPStatusCodes::HTTPBadRequest)
     expect(result.error[:error][:name]).to eq('InvalidRequestError')
   end
 
   it 'handles a response with invalid JSON' do
     # Mock response separately, so it won't be converted to json within `mock_http_response()` method
-    response_mock = instance_double(Net::HTTPResponse, code: '200', body: 'invalid json')
+    response_mock = instance_double(Net::HTTPResponse, code: HTTPStatusCodes::HTTPOK.to_s, body: 'invalid json')
     allow(@http_mock).to receive(:post).and_return(response_mock)
 
     result = client.execute(params, config)
@@ -111,7 +110,6 @@ describe JsonRpcClient do
   end
 
   it 'handles a server error (500)' do
-    internal_server_error_code = 500
     response_body = {
       'jsonrpc' => '2.0',
       'id' => client.send(:get_random_request_id),
@@ -120,12 +118,12 @@ describe JsonRpcClient do
         'message' => 'Internal error'
       }
     }
-    mock_http_response(internal_server_error_code, response_body)
+    mock_http_response(HTTPStatusCodes::HTTPInternalServerError, response_body)
 
     result = client.execute(params, config)
 
     expect(result.error[:error][:name]).to eq('InvalidRequestError')
-    expect(result.error[:code]).to eq(internal_server_error_code)
+    expect(result.error[:code]).to eq(HTTPStatusCodes::HTTPInternalServerError)
   end
 
   it 'handles a custom error response' do
@@ -143,7 +141,7 @@ describe JsonRpcClient do
         }
       }
     }
-    mock_http_response(200, response_body)
+    mock_http_response(HTTPStatusCodes::HTTPOK, response_body)
 
     result = client.execute(params, config)
 
