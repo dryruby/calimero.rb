@@ -8,18 +8,24 @@ def only_peers_get_all_posts
   puts "Context id: #{context_id}"
   executor_public_key = get_required_env('EXECUTOR_PUBLIC_KEY')
   puts "Executor public key: #{executor_public_key}"
-  bearer_auth_token = get_required_env('BEARER_AUTH_TOKEN')
-  puts "Bearer token: \"Bearer #{bearer_auth_token}\""
+
+  config_path = "#{Calimero::default_config_folder}/node1/config.toml"
+  config = Calimero::load_config(config_path)
+
+  timestamp = Time.now.utc.to_i.to_s
+  signature = config.keypair.sign(timestamp)
+  signature_b58 = Base58.binary_to_base58(signature, :bitcoin)
 
   method_name = 'posts'
   argsJson = {'feedRequest': {}}
   headers = {
     'Content-Type' => 'application/json',
-    'Authorization' => "Bearer #{bearer_auth_token}"
+    'X-Signature' => signature_b58,
+    'X-Timestamp' => timestamp
   }
 
   node_url = ENV['RPC_URL'] || Calimero.default_rpc_url
-  jsonrpc_path = '/jsonrpc'
+  jsonrpc_path = '/jsonrpc/dev'
   client = JsonRpcClient.new(node_url, jsonrpc_path)
   puts "Initialized Calimero JSON RPC Client with URL: #{node_url}#{jsonrpc_path}"
 

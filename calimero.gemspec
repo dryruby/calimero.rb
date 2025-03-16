@@ -30,5 +30,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'net-http', '~> 0.4.1'
   gem.add_dependency 'uri', '~> 0.10.0'
   gem.add_dependency 'json', '~> 2.10'
+  gem.add_dependency 'toml-rb', '~> 3.0.1'
+  gem.add_dependency 'ed25519', '~> 1.3.0'
+  gem.add_dependency 'base58', '~> 0.2.3'
 end
 
