@@ -12,7 +12,14 @@ class Config
   # Initialize with a TOML file path
   def initialize(file_path)
     @config_data = load_toml(file_path)
-    @keypair = Ed25519Keypair.new(@config_data.dig('identity', 'keypair'))
+    keypair_value = @config_data.dig('identity', 'keypair')
+    raise ConfigError, "'keypair' not found in [identity] section" unless keypair_value
+    @keypair = Ed25519Keypair.new(keypair_value)
+  end
+
+  # Allow dynamic access to raw config data
+  def [](key)
+    @config_data[key]
   end
 
   # Extend config with additional fields in the future
