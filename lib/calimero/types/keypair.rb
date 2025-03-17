@@ -10,6 +10,7 @@ class Ed25519Keypair
 
   # Initialize with a Base58-encoded keypair string
   def initialize(base58_keypair)
+    raise KeypairError, "Base58 keypair cannot be nil" if base58_keypair.nil?
     @key_bytes = decode_base58(base58_keypair)
     validate_keypair_length
     extract_keys
@@ -24,6 +25,9 @@ class Ed25519Keypair
   # Verify a signature against a message
   def verify(signature, message)
     @verify_key.verify(signature, message)
+    true
+  rescue Ed25519::VerifyError
+    false
   end
 
   def decode_base58(base58_keypair)
