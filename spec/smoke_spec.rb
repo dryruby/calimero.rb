@@ -3,10 +3,17 @@
 require 'calimero'
 
 RSpec.describe Calimero do
-  describe '.rpc_url' do
+  describe '.default_rpc_url' do
     it 'checks default RPC URL' do
       expected_default_rpc_url = "http://127.0.0.1:2428"
       expect(Calimero.default_rpc_url).to eq(expected_default_rpc_url)
+    end
+  end
+
+  describe '.default_config_folder' do
+    it 'checks default Calimero config folder' do
+      expected_default_config_folder = "#{Dir.home}/.calimero"
+      expect(Calimero.default_config_folder).to eq(expected_default_config_folder)
     end
   end
 
