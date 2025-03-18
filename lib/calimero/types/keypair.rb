@@ -8,11 +8,17 @@ class KeypairError < StandardError; end
 class Ed25519Keypair
   attr_reader :private_key, :public_key, :stored_public_key
 
+  # Expected protobuf prefix for Ed25519 keypair (type: 1, data length: 64)
+  # The implementation is used for compatibility with Ed25519 keypair from
+  # [libp2p_identity/keypair](https://github.com/libp2p/rust-libp2p/blob/88f7875ad1a3e240aa2d9b9fb6f6c5354f1a62eb/identity/src/keypair.rs#L262)
+  PROTOBUF_PREFIX = "\x08\x01\x12\x40".freeze
+
   # Initialize with a Base58-encoded keypair string
   def initialize(base58_keypair)
     raise KeypairError, "Base58 keypair cannot be nil" if base58_keypair.nil?
     @key_bytes = decode_base58(base58_keypair)
     validate_keypair_length
+    validate_protobuf_prefix
     extract_keys
     initialize_signing_key
   end
@@ -39,6 +45,13 @@ class Ed25519Keypair
   def validate_keypair_length
     return if @key_bytes.length == 68
     raise KeypairError, "Unexpected keypair length: #{@key_bytes.length} bytes (expected 68)"
+  end
+
+  def validate_protobuf_prefix
+    prefix = @key_bytes[0..3]
+    unless prefix == PROTOBUF_PREFIX
+      raise KeypairError, "Invalid protobuf prefix: #{prefix.unpack1('H*')} (expected #{PROTOBUF_PREFIX.unpack1('H*')})"
+    end
   end
 
   def extract_keys
