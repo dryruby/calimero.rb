@@ -2,7 +2,7 @@ Gem::Specification.new do |gem|
   gem.version            = File.read('VERSION').chomp
   gem.date               = File.mtime('VERSION').strftime('%Y-%m-%d')
 
-  gem.name               = "near"
+  gem.name               = "calimero"
   gem.homepage           = "https://github.com/dryruby/calimero.rb"
   gem.license            = "Unlicense"
   gem.summary            = "Calimero.rb: Calimero Network for Ruby"
