@@ -26,6 +26,7 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = '>= 3.0'
   gem.add_development_dependency 'rspec', '~> 3.12'
   gem.add_development_dependency 'yard' , '~> 0.9'
+  gem.add_development_dependency 'tempfile', '~> 0.3.0'
 
   gem.add_dependency 'net-http', '~> 0.4.1'
   gem.add_dependency 'uri', '~> 0.10.0'
