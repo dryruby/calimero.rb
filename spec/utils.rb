@@ -6,7 +6,7 @@ require 'calimero'
 # https://github.com/libp2p/rust-libp2p/blob/88f7875ad1a3e240aa2d9b9fb6f6c5354f1a62eb/identity/src/keypair.rs#L826)
 
 class Utils
-  REF_BASE58_ED25519_KEYPAIR = '23jhTd4prPeF6nkLJw8pzLotwyvUD8jmU1SHCoz9m54pw5bHiyU1GihabX1wkeTXoNxTzAmjDjeJmAMAcTeDg8MpUV9o3'
+  REF_BASE58_ED25519_KEYPAIR = '23jhTd4prPeF6nkLJw8pzLotwyvUD8jmU1SHCoz9m54pw5bHiyU1GihabX1wkeTXoNxTzAmjDjeJmAMAcTeDg8MpUV9o3'.freeze
 
   def self.valid_toml
     Tempfile.new('valid_config.toml').tap do |f|
