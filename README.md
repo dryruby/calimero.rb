@@ -15,10 +15,11 @@
 - Implemented natively in Ruby with minimal dependencies, ensuring low overhead and efficient performance.
 - Implements a `JsonRpcClient` for sending queries and updates to the applications in Calimero nodes.
 - Handles write and read calls to Calimero network applications.
-- 🚧 Manages authentication workflows, including token acquisitions and refresh.
+- Handles config management of Calimero nodes.
+- Manages authentication workflow using Ed25519-keypair.
+- 🚧 Manages authentication workflow using token acquisitions and refresh.
 - 🚧Implements a `WsSubscriptionsClient` for subscribing to real-time updates from the Calimero nodes.
 - 🚧 Supports interaction with Calimero Admin and Calimero Node APIs.
-- 🚧 Handles config management of Calimero nodes.
 - Adheres to the Ruby API Guidelines in its [naming conventions].
 - 100% free and unencumbered public domain software.
 
@@ -42,9 +43,84 @@ gem install calimero
 require 'calimero'
 ```
 
+### Loading the Calimero config
+
+You can load a Calimero config file the following way:
+
+```ruby
+require 'calimero'
+
+config_path = "/path/to/your/calimero/config.toml"
+config = Calimero::load_config(config_path)
+```
+
+If you would like to utilize the default Calimero config folder:
+```ruby
+require 'calimero'
+
+config_path = "#{Calimero::default_config_folder}/node1/config.toml"
+config = Calimero::load_config(config_path)
+```
+
+### Importing `Ed25519Keypair` from the config and signing an arbitrary message with it
+
+```ruby
+require 'calimero'
+
+config_path = "#{Calimero::default_config_folder}/node1/config.toml"
+config = Calimero::load_config(config_path)
+
+message = "Hello, Calimero"
+signature = config.keypair.sign(message)
+```
+
+### Importing `Ed25519Keypair` from base58-encoded protobuf message and signing an arbitrary message with it
+
+```ruby
+require 'calimero'
+
+# The keypair should be base58-encoded protobuf message (using `libp2p_identity::Keypair`)
+keypair_base58_protobuf = "<YOUR_BASE58_ENCODED_ED25519_KEYPAIR>"
+keypair = Ed25519Keypair.new(keypair_base58_protobuf)
+message = "Hello, Calimero"
+signature = keypair.sign(message)
+```
+
+### Executing arbitrary method in Calimero Application with authentication using dev JSONRPC endpoint
+
+```ruby
+require 'calimero'
+require 'base58'
+
+client = JsonRpcClient.new('http://localhost:2428', '/jsonrpc/dev')
+params = RpcQueryParams.new('your_application_context_id', 'some_method', { 'some': 'args' }, 'executor_public_key')
+
+config_path = "#{Calimero::default_config_folder}/node1/config.toml"
+config = Calimero::load_config(config_path)
+
+timestamp = Time.now.utc.to_i.to_s
+signature = config.keypair.sign(timestamp)
+signature_b58 = Base58.binary_to_base58(signature, :bitcoin)
+
+headers = {
+  'Content-Type' => 'application/json',
+  'X-Signature' => signature_b58,
+  'X-Timestamp' => timestamp
+}
+request_config = RequestConfig.new(timeout: 1000, headers: headers)
+result = client.execute(query_params, request_config)
+if result.error
+  puts "Error: #{result.error}"
+else
+  puts "Result: #{result.result}"
+end
+```
+
 ### Executing arbitrary method in Calimero Application
 
 ```ruby
+require 'calimero'
+
 client = JsonRpcClient.new('http://localhost:2428', '/jsonrpc')
 params = RpcQueryParams.new('your_application_context_id', 'some_method', { 'some': 'args' }, 'executor_public_key')
 bearer_auth_token = "some bearer auth token"
@@ -65,8 +141,10 @@ end
 
 You can query all the posts in the given [OnlyPeers] demo application, by using the following example:
 ```sh
-CONTEXT_ID=<ONLYPEERS_CONTEXT_ID> EXECUTOR_PUBLIC_KEY=<YOUR_EXECUTOR_PUBLIC_KEY> BEARER_AUTH_TOKEN=<YOUR_BEARER_AUTH_TOKEN> ruby examples/onlypeers_get_all_posts.rb
+CONTEXT_ID=<ONLYPEERS_CONTEXT_ID> EXECUTOR_PUBLIC_KEY=<YOUR_EXECUTOR_PUBLIC_KEY> ruby examples/onlypeers_get_all_posts.rb
 ```
+
+That example also contains an example on how to use the `Config` and `Ed25519Keypair` to authenticate your requests to the Calimero node.
 
 ## 📚 Reference
 
